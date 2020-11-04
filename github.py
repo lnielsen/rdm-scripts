@@ -12,6 +12,8 @@ GLOBAL_PACKAGES = [
     'invenio-drafts-resources',
     'invenio-rdm-records',
     'invenio-records-resources',
+    'react-invenio-deposit',
+    'react-invenio-forms',
 ]
 
 class MarkdownFormatter:
@@ -101,17 +103,26 @@ class PRs:
             yield p
 
 
-def retrieve_info(package_name, client):
+def pypi_retrieve_info(package_name, client):
     """Retrieve information about latest PyPI release."""
-    endpoint = 'https://pypi.org/pypi/{}/json'.format(package_name)
+    endpoint = f'https://pypi.org/pypi/{package_name}/json'
     res = client.get(endpoint)
     if res.status_code == 200:
         return res.json()
     return None
 
 
-def compare_pkg(name, gh, client):
-    pypi = retrieve_info(name, client)
+def npm_retrieve_info(package_name, client):
+    """Retrieve information about latest PyPI release."""
+    endpoint = 'https://registry.npmjs.org/{package_name}'
+    res = client.get(endpoint)
+    if res.status_code == 200:
+        return res.json()
+    return None
+
+
+def compare_pypi(name, gh, client):
+    pypi = pypi_retrieve_info(name, client)
     pypi_version = pypi['info']['version']
 
     repo = gh.repository('inveniosoftware', name)
@@ -120,6 +131,18 @@ def compare_pkg(name, gh, client):
         name,
         pypi_version,
         repo.compare_commits(f'v{pypi_version}', 'master'),
+    )
+
+def compare_npm(name, gh, client):
+    pkg = npm_retrieve_info(name, client)
+    npm_version = pkg['dist-tags']['latest']
+
+    repo = gh.repository('inveniosoftware', name)
+
+    return Comparison(
+        name,
+        npm_version,
+        repo.compare_commits(f'v{npm_version}', 'master'),
     )
 
 
@@ -169,7 +192,11 @@ def unreleased(packages, format, token):
     # Compare and output
     formatter.commit_header()
     for p in sorted(packages):
-        formatter.commit_body(compare_pkg(p, gh, client))
+        if p.startswith('react-'):
+            res = compare_npm(p, gh, client)
+        else:
+            res = compare_pypi(p, gh, client)
+        formatter.commit_body()
     formatter.commit_footer()
 
 
