@@ -20,7 +20,7 @@ List open PRs against master/main branch:
 
 ```
 $ python github.py prs -t <gh token> -f txt
-$ python github.py unreleased -t <gh token> -f txt invenio-theme invenio-search-ui
+$ python github.py prs -t <gh token> -f txt invenio-theme invenio-search-ui
 ```
 
 Supported output formats:
