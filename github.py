@@ -114,7 +114,7 @@ def pypi_retrieve_info(package_name, client):
 
 def npm_retrieve_info(package_name, client):
     """Retrieve information about latest PyPI release."""
-    endpoint = 'https://registry.npmjs.org/{package_name}'
+    endpoint = f'https://registry.npmjs.org/{package_name}'
     res = client.get(endpoint)
     if res.status_code == 200:
         return res.json()
@@ -196,7 +196,7 @@ def unreleased(packages, format, token):
             res = compare_npm(p, gh, client)
         else:
             res = compare_pypi(p, gh, client)
-        formatter.commit_body()
+        formatter.commit_body(res)
     formatter.commit_footer()
 
 
